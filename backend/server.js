@@ -190,6 +190,9 @@ app.use('/api/observations', observationsRoutes);
 const clientsAffairesRoutes = require('./routes/clientsAffaires');
 app.use('/api/clients-affaires', clientsAffairesRoutes);
 
+const mobileAuthRoutes = require('./routes/mobileAuth');
+app.use('/api/mobile', mobileAuthRoutes);
+
 // Supprimez ces routes directes de server.js car elles sont maintenant gérées par clientsAffairesRoutes
 // app.get('/api/clients', (req, res) => { /* ... */ });
 // app.get('/api/affaires/:client_id', (req, res) => { /* ... */ });
