@@ -83,19 +83,6 @@ const db = new sqlite3.Database(path.join(__dirname, 'gestion_travaux.db'), (err
       console.error("Erreur de création de la table 'mobile_users':", err.message);
     } else {
       console.log('Table mobile_users vérifiée/créée.');
-      // Optionnel : Insérer un utilisateur mobile par défaut pour les tests
-      // ATTENTION : Le mot de passe doit être hashé ! Utilisez bcryptjs comme pour les users web.
-      // Pour l'exemple, je mets un mot de passe en clair, mais NE FAITES PAS ÇA EN PRODUCTION.
-      // db.get("SELECT COUNT(*) AS count FROM mobile_users WHERE matricule = 'P001'", (err, row) => {
-      //   if (row.count === 0) {
-      //     db.run("INSERT INTO mobile_users (matricule, nom, prenoms, fonction, motDePasse) VALUES (?, ?, ?, ?, ?)",
-      //       ['P001', 'Durand', 'Paul', 'Technicien', 'passer'], // 'passer' doit être hashé en vrai
-      //       (err) => {
-      //         if (err) console.error("Erreur d'insertion utilisateur mobile par défaut:", err.message);
-      //         else console.log("Utilisateur mobile par défaut inséré.");
-      //       });
-      //   }
-      // });
     }
   });
 
@@ -119,6 +106,7 @@ const db = new sqlite3.Database(path.join(__dirname, 'gestion_travaux.db'), (err
     date_recu TEXT,
     heure_total TEXT,
     facturation TEXT,
+    adresse TEXT,
     est_valide BOOLEAN
   )`);
 
