@@ -1,282 +1,177 @@
 import React, { useEffect, useState } from 'react';
-import { FaUserPlus, FaTrash, FaEdit } from 'react-icons/fa';
-import Papa from 'papaparse'; // Pas utilisé ici, peut être retiré si non nécessaire
+import { FaTrash, FaEdit } from 'react-icons/fa';
 import { PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 
-const COLORS = ['#1c5eecff', '#82ca9d', '#ffc658', '#ff8042', '#a4de6c', '#d0ed57']; // Plus de couleurs pour les statuts
+const COLORS = ['#1c5eecff', '#82ca9d', '#ffc658', '#ff8042', '#a4de6c', '#d0ed57'];
 
 function ClientsAffairesPage() {
   const [clients, setClients] = useState([]);
   const [search, setSearch] = useState('');
-  // États pour le formulaire d'ajout
   const [newAffaireNumero, setNewAffaireNumero] = useState('');
   const [newClientNom, setNewClientNom] = useState('');
   const [newClientAdresse, setNewClientAdresse] = useState('');
   const [newClientContact, setNewClientContact] = useState('');
   const [newAffaireStatut, setNewAffaireStatut] = useState('Actif');
-  const [newAffaireDesignation, setNewAffaireDesignation] = useState(''); // Ajout de la désignation
-  // NOUVEAUX ÉTATS POUR LA MODIFICATION
+  const [newAffaireDesignation, setNewAffaireDesignation] = useState('');
   const [showEditModal, setShowEditModal] = useState(false);
-  const [currentAffaireToEdit, setCurrentAffaireToEdit] = useState(null); // Contient l'affaire + client associé
+  const [currentAffaireToEdit, setCurrentAffaireToEdit] = useState(null);
 
   useEffect(() => {
     fetch('http://localhost:5000/api/clients-affaires')
-      .then((res) => res.json())
-      .then((data) => {
-        console.log('Données reçues de l\'API clients-affaires :', data);
-        if (Array.isArray(data)) {
-          setClients(data);
-        } else {
-          console.error('Les données reçues ne sont pas un tableau :', data);
-          setClients([]); // S'assurer que 'clients' est un tableau vide en cas d'erreur
-        }
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setClients(data);
+        else setClients([]);
       })
-      .catch((err) => console.error('Erreur lors du chargement des clients:', err));
+      .catch(console.error);
   }, []);
 
-  // Filtrer les clients/affaires
   const filteredClients = Array.isArray(clients)
-    ? clients.filter((c) =>
+    ? clients.filter(c =>
         (c.nom || '').toLowerCase().includes(search.toLowerCase()) ||
         c.affaires.some(a => (a.numero || '').toLowerCase().includes(search.toLowerCase())) ||
         c.affaires.some(a => (a.designation || '').toLowerCase().includes(search.toLowerCase()))
       )
     : [];
 
-  // Préparation des données pour les statistiques (basées sur les affaires)
-  const allAffaires = [];
-  if (Array.isArray(clients)) {
-    clients.forEach(client => {
-      client.affaires.forEach(affaire => {
-        allAffaires.push(affaire);
-      });
-    });
-  }
-
+  const allAffaires = filteredClients.flatMap(c => c.affaires);
+  const dataPie = Object.entries(
+    allAffaires.reduce((acc, a) => {
+      acc[a.statut] = (acc[a.statut] || 0) + 1;
+      return acc;
+    }, {})
+  ).map(([name, value]) => ({ name, value }));
   const totalAffaires = allAffaires.length;
-  
-  const affairesParStatut = allAffaires.reduce((acc, affaire) => {
-    const statut = affaire.statut || 'Inconnu';
-    acc[statut] = (acc[statut] || 0) + 1;
-    return acc;
-  }, {});
 
-  const dataPie = Object.entries(affairesParStatut).map(([type, value]) => ({
-    name: type,
-    value,
-  }));
-
-  const handleAddClientAffaire = (e) => {
+  const handleAddClientAffaire = async (e) => {
     e.preventDefault();
-
     const newEntry = {
       numero: newAffaireNumero,
       nom: newClientNom,
       adresse: newClientAdresse,
       contact: newClientContact,
       statut: newAffaireStatut,
-      designation: newAffaireDesignation, // Inclure la désignation
+      designation: newAffaireDesignation,
     };
-
-    fetch('http://localhost:5000/api/clients-affaires', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newEntry),
-    })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error('Erreur réseau ou réponse non OK');
+    try {
+      const res = await fetch('http://localhost:5000/api/clients-affaires', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newEntry),
+      });
+      if (!res.ok) throw new Error('Erreur POST');
+      const data = await res.json();
+      setClients(prev => {
+        const idx = prev.findIndex(c => c.id === data.client.id);
+        if (idx > -1) {
+          const copy = [...prev];
+          copy[idx].affaires.push(data.affaire);
+          return copy;
         }
-        return res.json();
-      })
-      .then((data) => {
-        console.log('Réponse POST :', data);
-        // Mettre à jour l'état `clients` de manière intelligente
-        // Si le client existe, ajouter l'affaire à son tableau d'affaires
-        // Sinon, ajouter un nouveau client avec cette affaire
-        setClients(prevClients => {
-          const existingClientIndex = prevClients.findIndex(c => c.id === data.client.id);
-          if (existingClientIndex > -1) {
-            // Le client existe, ajouter l'affaire
-            const updatedClients = [...prevClients];
-            updatedClients[existingClientIndex].affaires.push(data.affaire);
-            return updatedClients;
-          } else {
-            // Nouveau client, créer un nouvel objet client avec l'affaire
-            return [...prevClients, {
-              id: data.client.id,
-              nom: data.client.nom,
-              contact: data.client.contact,
-              adresse: data.client.adresse,
-              affaires: [data.affaire]
-            }];
-          }
-        });
-        // Réinitialiser le formulaire
-        setNewAffaireNumero('');
-        setNewClientNom('');
-        setNewClientAdresse('');
-        setNewClientContact('');
-        setNewAffaireStatut('Actif');
-        setNewAffaireDesignation('');
-      })
-      .catch((err) => console.error('Erreur lors de l\'ajout du client/affaire:', err));
+        return [...prev, { ...data.client, affaires: [data.affaire] }];
+      });
+      setNewAffaireNumero(''); setNewClientNom(''); setNewClientAdresse('');
+      setNewClientContact(''); setNewAffaireStatut('Actif'); setNewAffaireDesignation('');
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  // NOUVELLE FONCTION: Gérer la suppression d'une affaire
-  const handleDeleteAffaire = (affaireId, clientId) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette affaire ?')) {
-      fetch(`http://localhost:5000/api/clients-affaires/affaires/${affaireId}`, {
+  const handleDeleteAffaire = async (affaireId, clientId) => {
+    if (!window.confirm('Êtes-vous sûr ?')) return;
+    try {
+      const res = await fetch(`http://localhost:5000/api/clients-affaires/affaires/${affaireId}`, {
         method: 'DELETE',
-      })
-        .then(res => {
-          if (!res.ok) {
-            throw new Error('Erreur lors de la suppression de l\'affaire.');
-          }
-          return res.json();
-        })
-        .then(data => {
-          console.log('Suppression réussie :', data.message);
-          // Mettre à jour l'état de React pour retirer l'affaire supprimée
-          setClients(prevClients => {
-            return prevClients.map(client => {
-              if (client.id === clientId) {
-                return {
-                  ...client,
-                  affaires: client.affaires.filter(aff => aff.id !== affaireId)
-                };
-              }
-              return client;
-            }).filter(client => client.affaires.length > 0); // Optionnel: Si un client n'a plus d'affaires, le retirer de la liste
-          });
-        })
-        .catch(err => console.error('Erreur lors de la suppression de l\'affaire:', err));
+      });
+      if (!res.ok) throw new Error('Erreur DELETE');
+      await res.json();
+      setClients(prev =>
+        prev
+          .map(c => c.id === clientId
+            ? { ...c, affaires: c.affaires.filter(a => a.id !== affaireId) }
+            : c
+          )
+          .filter(c => c.affaires.length > 0)
+      );
+    } catch (err) {
+      console.error(err);
     }
   };
 
-  // Fonction pour ouvrir le modal de modification
-const openEditModal = (affaire, client) => {
-  // Stocke toutes les infos nécessaires, y compris les ID et les infos client
-  setCurrentAffaireToEdit({
-    ...affaire,
-    clientId: client.id, // Assurez-vous d'avoir l'ID du client
-    clientNom: client.nom,
-    clientAdresse: client.adresse,
-    clientContact: client.contact
-  });
-  setShowEditModal(true);
-};
-// Fonction pour fermer le modal de modification
-const closeEditModal = () => {
-  setShowEditModal(false);
-  setCurrentAffaireToEdit(null); // Réinitialiser l'affaire en cours d'édition
-};
-
-// NOUVELLE FONCTION: Gérer la soumission du formulaire de modification
-const handleUpdateAffaire = async (e) => {
-  e.preventDefault();
-  if (!currentAffaireToEdit) return;
-
-  const {
-    id: affaireId,
-    numero,
-    designation,
-    statut,
-    clientId,
-    clientNom,
-    clientAdresse,
-    clientContact
-  } = currentAffaireToEdit;
-
-  try {
-    // 1. Mettre à jour l'affaire
-    const affaireRes = await fetch(`http://localhost:5000/api/clients-affaires/affaires/${affaireId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ numero, designation, statut }),
+  const openEditModal = (aff, client) => {
+    setCurrentAffaireToEdit({
+      ...aff,
+      clientId: client.id,
+      clientNom: client.nom,
+      clientAdresse: client.adresse,
+      clientContact: client.contact,
     });
-    if (!affaireRes.ok) {
-      const err = await affaireRes.json();
-      throw new Error(err.error || err.message || 'Erreur lors de la mise à jour de l\'affaire');
-    }
+    setShowEditModal(true);
+  };
+  const closeEditModal = () => {
+    setShowEditModal(false);
+    setCurrentAffaireToEdit(null);
+  };
 
-    // 2. Mettre à jour le client (si au moins un champ a changé)
-    const clientRes = await fetch(`http://localhost:5000/api/clients-affaires/clients/${clientId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nom: clientNom, adresse: clientAdresse, contact: clientContact }),
-    });
-    if (!clientRes.ok) {
-      const err = await clientRes.json();
-      throw new Error(err.error || err.message || 'Erreur lors de la mise à jour du client');
-    }
-
-    // Optionnel : on peut récupérer les objets mis à jour si tu adaptes le backend pour les renvoyer
-    // Sinon tu réapplique localement les valeurs modifiées
-    setClients(prevClients => {
-      return prevClients.map(client => {
-        let updatedClient = client;
-        if (client.id === clientId) {
-          updatedClient = {
-            ...client,
-            nom: clientNom,
-            adresse: clientAdresse,
-            contact: clientContact,
-            affaires: client.affaires.map(aff => {
-              if (aff.id === affaireId) {
-                return {
-                  ...aff,
-                  numero,
-                  designation,
-                  statut
-                };
-              }
-              return aff;
-            }),
+  const handleUpdateAffaire = async (e) => {
+    e.preventDefault();
+    if (!currentAffaireToEdit) return;
+    const {
+      id, numero, designation, statut,
+      clientId, clientNom, clientAdresse, clientContact
+    } = currentAffaireToEdit;
+    try {
+      const res = await fetch(`http://localhost:5000/api/clients-affaires/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          numero, designation, statut,
+          clientId, nom: clientNom, adresse: clientAdresse, contact: clientContact
+        }),
+      });
+      if (!res.ok) throw new Error('Erreur PUT composite');
+      const data = await res.json();
+      setClients(prev => prev.map(c => {
+        if (c.id === data.updatedClient.id) {
+          return {
+            id: c.id,
+            nom: data.updatedClient.nom,
+            adresse: data.updatedClient.adresse,
+            contact: data.updatedClient.contact,
+            affaires: c.affaires.map(a =>
+              a.id === data.updatedAffaire.id
+                ? { ...a, numero: data.updatedAffaire.numero, designation: data.updatedAffaire.designation, statut: data.updatedAffaire.statut }
+                : a
+            )
           };
         }
-        return updatedClient;
-      });
-    });
-
-    closeEditModal();
-  } catch (err) {
-    console.error('Erreur lors de la mise à jour:', err);
-    // tu peux afficher une notification utilisateur ici
-  }
-};
-
+        return c;
+      }));
+      closeEditModal();
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
     <div className="p-8">
-      <h2 className="text-2xl font-bold mb-4 text-gray-800">Clients / Affaires</h2>
-
-      {/* Filtres */}
+      <h2 className="text-2xl font-bold mb-4">Clients / Affaires</h2>
       <input
         type="text"
-        placeholder="Rechercher par client, affaire ou désignation"
+        placeholder="Rechercher..."
         value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        onChange={e => setSearch(e.target.value)}
         className="p-2 border rounded mb-6 w-full max-w-md"
       />
 
-      {/* Bloc: Graphique + Formulaire */}
-      <div className="flex flex-col lg:flex-row items-start gap-8 mb-8"> {/* Utiliser flex-col et lg:flex-row pour le responsive */}
-        {/* Diagramme */}
-        <div className="bg-white p-6 rounded shadow w-full lg:w-[600px] h-[320px] flex-shrink-0">
-          <h3 className="text-lg font-semibold mb-2">Répartition des affaires par statut</h3>
+      <div className="flex flex-col lg:flex-row items-start gap-8 mb-8">
+        <div className="bg-white p-6 rounded shadow w-full lg:w-[600px] h-[320px]">
+          <h3 className="text-lg font-semibold mb-2">Répartition par statut</h3>
           {totalAffaires > 0 ? (
-            <PieChart width={500} height={250}> {/* Ajuster la hauteur du graphique */}
-              <Pie
-                data={dataPie}
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {dataPie.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            <PieChart width={500} height={250}>
+              <Pie data={dataPie} cx="50%" cy="50%" outerRadius={100} fill="#8884d8" dataKey="value">
+                {dataPie.map((entry, i) => (
+                  <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip />
@@ -287,101 +182,64 @@ const handleUpdateAffaire = async (e) => {
           )}
         </div>
 
-        {/* Formulaire à droite */}
-        <div className="bg-white p-6 rounded shadow w-full lg:max-w-md"> {/* Utiliser w-full et lg:max-w-md pour le responsive */}
-          <h3 className="text-lg font-semibold mb-4">Ajouter une affaire et/ou un client</h3>
+        <div className="bg-white p-6 rounded shadow w-full lg:max-w-md">
+          <h3 className="text-lg font-semibold mb-4">Ajouter une affaire/client</h3>
           <form onSubmit={handleAddClientAffaire}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4"> {/* Adapter la grille pour les petits écrans */}
-              <input name="numero" placeholder="N° Affaire" className="p-2 border rounded" required value={newAffaireNumero} onChange={(e) => setNewAffaireNumero(e.target.value)} />
-              <input name="nom" placeholder="Nom Client" className="p-2 border rounded" required value={newClientNom} onChange={(e) => setNewClientNom(e.target.value)} />
-              <input name="designation" placeholder="Désignation Affaire" className="p-2 border rounded col-span-2" value={newAffaireDesignation} onChange={(e) => setNewAffaireDesignation(e.target.value)} />
-              <input name="adresse" placeholder="Adresse" className="p-2 border rounded" value={newClientAdresse} onChange={(e) => setNewClientAdresse(e.target.value)} />
-              <input name="contact" placeholder="Contact" className="p-2 border rounded" value={newClientContact} onChange={(e) => setNewClientContact(e.target.value)} />
-              <select name="statut" className="p-2 border rounded col-span-2" value={newAffaireStatut} onChange={(e) => setNewAffaireStatut(e.target.value)}>
-                <option value="Actif">Actif</option>
-                <option value="En Cours">En Cours</option>
-                <option value="Terminé">Terminé</option>
-                <option value="Annulé">Annulé</option>
-                <option value="En attente">En attente</option>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <input required name="numero" placeholder="N° Affaire" className="p-2 border rounded" value={newAffaireNumero} onChange={e => setNewAffaireNumero(e.target.value)} />
+              <input required name="nom" placeholder="Nom Client" className="p-2 border rounded" value={newClientNom} onChange={e => setNewClientNom(e.target.value)} />
+              <input name="designation" placeholder="Désignation" className="p-2 border rounded col-span-2" value={newAffaireDesignation} onChange={e => setNewAffaireDesignation(e.target.value)} />
+              <input name="adresse" placeholder="Adresse" className="p-2 border rounded" value={newClientAdresse} onChange={e => setNewClientAdresse(e.target.value)} />
+              <input name="contact" placeholder="Contact" className="p-2 border rounded" value={newClientContact} onChange={e => setNewClientContact(e.target.value)} />
+              <select name="statut" className="p-2 border rounded col-span-2" value={newAffaireStatut} onChange={e => setNewAffaireStatut(e.target.value)}>
+                <option>Actif</option><option>En Cours</option><option>Terminé</option><option>Annulé</option><option>En attente</option>
               </select>
             </div>
-            <button type="submit" className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Ajouter Affaire/Client</button>
+            <button type="submit" className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Ajouter</button>
           </form>
         </div>
       </div>
 
-      {/* Statistiques texte */}
       <div className="bg-white p-6 rounded shadow w-full max-w-md mb-6">
-        <h3 className="text-lg font-semibold mb-2">Statistiques des Affaires</h3>
+        <h3 className="text-lg font-semibold mb-2">Statistiques des affaires</h3>
         <p>Total affaires : <strong>{totalAffaires}</strong></p>
         <ul className="list-disc ml-6">
-          {Object.entries(affairesParStatut).map(([type, count]) => (
-            <li key={type}>
-              {type} : {count}
-            </li>
-          ))}
+          {dataPie.map(d => <li key={d.name}>{d.name} : {d.value}</li>)}
         </ul>
       </div>
 
-      {/* Tableau */}
       <div className="max-h-[60vh] overflow-y-auto rounded shadow border">
         <table className="min-w-full bg-white text-sm">
-          <thead className="bg-gray-100 text-left sticky top-0 z-10">
+          <thead className="bg-gray-100 text-left sticky top-0">
             <tr>
-              <th className="px-4 py-2">N° Affaire</th>
-              <th className="px-4 py-2">Désignation</th>
-              <th className="px-4 py-2">Nom Client</th>
-              <th className="px-4 py-2">Adresse</th>
-              <th className="px-4 py-2">Contact</th>
-              <th className="px-4 py-2">Statut Affaire</th>
-              <th className="px-4 py-2">Action</th>
+              <th>N° Affaire</th><th>Désignation</th><th>Nom Client</th><th>Adresse</th><th>Contact</th><th>Statut</th><th>Action</th>
             </tr>
           </thead>
           <tbody>
-            {filteredClients.length > 0 ? (
-              filteredClients.map((client) =>
-                client.affaires.map((affaire) => (
-                  <tr key={`${client.id}-${affaire.id}`} className="border-b hover:bg-gray-50"> {/* Clé unique */}
-                    <td className="px-4 py-2">{affaire.numero}</td>
-                    <td className="px-4 py-2">{affaire.designation}</td>
-                    <td className="px-4 py-2">{client.nom}</td>
-                    <td className="px-4 py-2">{client.adresse}</td>
-                    <td className="px-4 py-2">{client.contact}</td>
-                    <td className="px-4 py-2">
-                      <span className={`font-semibold ${
-                        affaire.statut === 'Actif' ? 'text-green-600' :
-                        affaire.statut === 'Terminé' ? 'text-blue-600' :
-                        affaire.statut === 'Annulé' ? 'text-red-500' :
-                        'text-orange-500' // Pour "En Cours", "En attente", etc.
-                      }`}>
-                        {affaire.statut}
-                      </span>
-                    </td>
-                    <td className="px-4 py-2 whitespace-nowrap">
-                      {/* Bouton Modifier */}
-                    <button
-                      className="mr-3 text-yellow-600 hover:text-yellow-800"
-                      onClick={() => openEditModal(affaire, client)} // Passer l'affaire et le client
-                    >
-                       <FaEdit className="inline mr-1" /> Modifier
-                      </button>
-                      {/* Bouton Supprimer */}
-                      <button
-                        className="text-red-600 hover:text-red-800"
-                        onClick={() => handleDeleteAffaire(affaire.id, client.id)}
-                      >
-                        <FaTrash className="inline mr-1" />Supprimer
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )
+            {filteredClients.length > 0 ? filteredClients.map(c =>
+              c.affaires.map(a => (
+                <tr key={`${c.id}-${a.id}`} className="border-b hover:bg-gray-50">
+                  <td className="px-4 py-2">{a.numero}</td>
+                  <td className="px-4 py-2">{a.designation}</td>
+                  <td className="px-4 py-2">{c.nom}</td>
+                  <td className="px-4 py-2">{c.adresse}</td>
+                  <td className="px-4 py-2">{c.contact}</td>
+                  <td className="px-4 py-2">
+                    <span className={`font-semibold ${
+                      a.statut === 'Actif' ? 'text-green-600' :
+                      a.statut === 'Terminé' ? 'text-blue-600' :
+                      a.statut === 'Annulé' ? 'text-red-500' :
+                      'text-orange-500'
+                    }`}>{a.statut}</span>
+                  </td>
+                  <td className="px-4 py-2 whitespace-nowrap">
+                    <button className="mr-3 text-yellow-600 hover:text-yellow-800" onClick={() => openEditModal(a, c)}><FaEdit className="inline mr-1"/>Modifier</button>
+                    <button className="text-red-600 hover:text-red-800" onClick={() => handleDeleteAffaire(a.id, c.id)}><FaTrash className="inline mr-1"/>Supprimer</button>
+                  </td>
+                </tr>
+              ))
             ) : (
-              <tr>
-                <td colSpan="7" className="text-center text-gray-500 py-4">
-                  Aucun client ou affaire trouvé.
-                </td>
-              </tr>
+              <tr><td colSpan="7" className="text-center text-gray-500 py-4">Aucun client ou affaire trouvé.</td></tr>
             )}
           </tbody>
         </table>
