@@ -173,7 +173,7 @@ const closeEditModal = () => {
 };
 
 // NOUVELLE FONCTION: Gérer la soumission du formulaire de modification
-const handleUpdateAffaire = (e) => {
+const handleUpdateAffaire = async (e) => {
   e.preventDefault();
   if (!currentAffaireToEdit) return;
 
@@ -182,63 +182,70 @@ const handleUpdateAffaire = (e) => {
     numero,
     designation,
     statut,
-    clientId, // Récupérez l'ID du client
-    clientNom, clientAdresse, clientContact // Récupérez les infos client
+    clientId,
+    clientNom,
+    clientAdresse,
+    clientContact
   } = currentAffaireToEdit;
 
-  fetch(`http://localhost:5000/api/clients-affaires/affaires/${affaireId}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      numero,
-      designation,
-      statut,
-      clientId,        // Envoyer l'ID du client
-      clientNom,       // Envoyer le nom du client
-      clientAdresse,   // Envoyer l'adresse du client
-      clientContact    // Envoyer le contact du client
-    }),
-  })
-    .then(res => {
-      if (!res.ok) {
-        throw new Error('Erreur lors de la mise à jour.');
-      }
-      return res.json();
-    })
-    .then(data => {
-      console.log('Mise à jour réussie :', data.message);
-      // Mettre à jour l'état de React pour refléter les changements
-      setClients(prevClients => {
-        return prevClients.map(client => {
-          // Mettre à jour les infos du client si c'est le client concerné
-          if (data.updatedClient && client.id === data.updatedClient.id) {
-            client = {
-              ...client,
-              nom: data.updatedClient.nom,
-              adresse: data.updatedClient.adresse,
-              contact: data.updatedClient.contact
-            };
-          }
+  try {
+    // 1. Mettre à jour l'affaire
+    const affaireRes = await fetch(`http://localhost:5000/api/clients-affaires/affaires/${affaireId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ numero, designation, statut }),
+    });
+    if (!affaireRes.ok) {
+      const err = await affaireRes.json();
+      throw new Error(err.error || err.message || 'Erreur lors de la mise à jour de l\'affaire');
+    }
 
-          // Mettre à jour les affaires de ce client
-          const updatedAffaires = client.affaires.map(aff => {
-            if (data.updatedAffaire && aff.id === data.updatedAffaire.id) {
-              return {
-                ...aff,
-                numero: data.updatedAffaire.numero,
-                designation: data.updatedAffaire.designation,
-                statut: data.updatedAffaire.statut,
-              };
-            }
-            return aff;
-          });
-          return { ...client, affaires: updatedAffaires };
-        });
+    // 2. Mettre à jour le client (si au moins un champ a changé)
+    const clientRes = await fetch(`http://localhost:5000/api/clients-affaires/clients/${clientId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nom: clientNom, adresse: clientAdresse, contact: clientContact }),
+    });
+    if (!clientRes.ok) {
+      const err = await clientRes.json();
+      throw new Error(err.error || err.message || 'Erreur lors de la mise à jour du client');
+    }
+
+    // Optionnel : on peut récupérer les objets mis à jour si tu adaptes le backend pour les renvoyer
+    // Sinon tu réapplique localement les valeurs modifiées
+    setClients(prevClients => {
+      return prevClients.map(client => {
+        let updatedClient = client;
+        if (client.id === clientId) {
+          updatedClient = {
+            ...client,
+            nom: clientNom,
+            adresse: clientAdresse,
+            contact: clientContact,
+            affaires: client.affaires.map(aff => {
+              if (aff.id === affaireId) {
+                return {
+                  ...aff,
+                  numero,
+                  designation,
+                  statut
+                };
+              }
+              return aff;
+            }),
+          };
+        }
+        return updatedClient;
       });
-      closeEditModal(); // Fermer le modal après succès
-    })
-    .catch(err => console.error('Erreur lors de la mise à jour:', err));
+    });
+
+    closeEditModal();
+  } catch (err) {
+    console.error('Erreur lors de la mise à jour:', err);
+    // tu peux afficher une notification utilisateur ici
+  }
 };
+
 
   return (
     <div className="p-8">
