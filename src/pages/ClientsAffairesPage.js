@@ -126,7 +126,7 @@ function ClientsAffairesPage() {
   // NOUVELLE FONCTION: Gérer la suppression d'une affaire
   const handleDeleteAffaire = (affaireId, clientId) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer cette affaire ?')) {
-      fetch(`http://localhost:5000/api/clients-affaires/${affaireId}`, {
+      fetch(`http://localhost:5000/api/clients-affaires/affaires/${affaireId}`, {
         method: 'DELETE',
       })
         .then(res => {
@@ -186,7 +186,7 @@ const handleUpdateAffaire = (e) => {
     clientNom, clientAdresse, clientContact // Récupérez les infos client
   } = currentAffaireToEdit;
 
-  fetch(`http://localhost:5000/api/clients-affaires/${affaireId}`, {
+  fetch(`http://localhost:5000/api/clients-affaires/affaires/${affaireId}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
