@@ -70,7 +70,7 @@ const db = new sqlite3.Database(path.join(__dirname, 'gestion_travaux.db'), (err
     }
   });
 
-   // NOUVEAU : Création de la table 'mobile_users' (ou 'personnel_chantier')
+   // NOUVEAU : Création de la table 'mobile_users' IDENTIQUE AU db_helper.dart dans le FLUTTER
   db.run(`CREATE TABLE IF NOT EXISTS mobile_users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       matricule TEXT UNIQUE,
@@ -87,7 +87,7 @@ const db = new sqlite3.Database(path.join(__dirname, 'gestion_travaux.db'), (err
   });
 
 
-  // Création du table personnels si nécessaire
+  // Création du table personnels si nécessaire IDENTIQUE AU db_helper.dart dans le FLUTTER
   db.run(`CREATE TABLE IF NOT EXISTS personnels (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     matricule TEXT UNIQUE,
@@ -96,7 +96,7 @@ const db = new sqlite3.Database(path.join(__dirname, 'gestion_travaux.db'), (err
     fonction TEXT
   )`);
 
-  // Création du table bonsdetravail si elle n'existe pas
+  // Création du table bonsdetravail si elle n'existe pas IDENTIQUE AU db_helper.dart dans le FLUTTER
   db.run(`CREATE TABLE IF NOT EXISTS bonsdetravail (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     numero_bon INTEGER,
@@ -110,7 +110,7 @@ const db = new sqlite3.Database(path.join(__dirname, 'gestion_travaux.db'), (err
     est_valide BOOLEAN
   )`);
 
-  // Création de la table interventions
+  // Création de la table interventions IDENTIQUE AU db_helper.dart dans le FLUTTER
   db.run(`CREATE TABLE IF NOT EXISTS interventions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     bon_id INTEGER,
@@ -126,7 +126,7 @@ const db = new sqlite3.Database(path.join(__dirname, 'gestion_travaux.db'), (err
     FOREIGN KEY (bon_id) REFERENCES bonsdetravail(id)
   )`);
 
-  // Création de la table observations
+  // Création de la table observations IDENTIQUE AU db_helper.dart dans le FLUTTER
   db.run(`CREATE TABLE IF NOT EXISTS observations (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     bon_id INTEGER,
