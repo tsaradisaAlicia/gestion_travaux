@@ -16,12 +16,103 @@ const db = new sqlite3.Database(path.join(__dirname, 'gestion_travaux.db'), (err
   console.log('✅ Connexion à SQLite réussie.');
 
   // NOUVELLE LIGNE À AJOUTER ICI : Rend l'instance de la base de données disponible pour toutes les routes
-  app.set('db', db); // <====================================================== AJOUTEZ CETTE LIGNE
+  app.set('db', db);
 
-  // Création du table users
-  // Note: Nous allons ajouter la colonne role_id et supprimer la colonne role TEXT.
-  // Si votre table users existe déjà, vous devrez peut-être faire un ALTER TABLE.
-  // Pour l'instant, assurez-vous que cette structure est correcte.
+   //1) NOUVEAU : Création de la table 'mobile_users' IDENTIQUE AU db_helper.dart dans le FLUTTER
+  db.run(`CREATE TABLE IF NOT EXISTS mobile_users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      matricule TEXT UNIQUE,
+      nom TEXT,
+      prenoms TEXT,
+      fonction TEXT,
+      motDePasse TEXT NOT NULL
+  )`, (err) => {
+    if (err) {
+      console.error("Erreur de création de la table 'mobile_users':", err.message);
+    } else {
+      console.log('Table mobile_users vérifiée/créée.');
+    }
+  });
+
+  //2) Création du table bonsdetravail si elle n'existe pas IDENTIQUE AU db_helper.dart dans le FLUTTER
+  db.run(`CREATE TABLE IF NOT EXISTS bonsdetravail (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    numero_bon INTEGER,
+    affaire TEXT,
+    client TEXT,
+    designation_travaux TEXT,
+    date_recu TEXT,
+    heure_total TEXT,
+    facturation TEXT,
+    adresse TEXT,
+    est_valide BOOLEAN
+  )`);
+
+  //3) Création de la table interventions IDENTIQUE AU db_helper.dart dans le FLUTTER
+  db.run(`CREATE TABLE IF NOT EXISTS interventions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    bon_id INTEGER,
+    du TEXT,
+    au TEXT,
+    matricule TEXT,
+    prenoms TEXT,
+    binome TEXT,
+    heure_debut TEXT,
+    heure_fin TEXT,
+    description_detail TEXT,
+    observation_detail TEXT,
+    FOREIGN KEY (bon_id) REFERENCES bonsdetravail(id)
+  )`);
+
+  //4) Création de la table observations IDENTIQUE AU db_helper.dart dans le FLUTTER
+  db.run(`CREATE TABLE IF NOT EXISTS observations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    bon_id INTEGER,
+    tool_box_details TEXT,
+    tool_box_responsable TEXT,
+    rapport_incident TEXT,
+    suivi_dechets_details TEXT,
+    suivi_dechets_responsable TEXT,
+    hsse TEXT,
+    environnement TEXT,
+    date TEXT,
+    observateur TEXT,
+    type TEXT,
+    description TEXT,
+    gravite TEXT,
+    statut TEXT,
+    chantier TEXT,
+    FOREIGN KEY (bon_id) REFERENCES bonsdetravail(id)
+  )`);
+
+  //5) Création du table personnels si nécessaire IDENTIQUE AU db_helper.dart dans le FLUTTER
+  db.run(`CREATE TABLE IF NOT EXISTS personnels (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    matricule TEXT UNIQUE,
+    nom TEXT,
+    prenoms TEXT,
+    fonction TEXT
+  )`);
+
+  //6) Création de la table clients 
+  db.run(`CREATE TABLE IF NOT EXISTS clients (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nom TEXT UNIQUE,
+    contact TEXT,
+    adresse TEXT
+  )`);
+
+  //7) Création de la table affaires
+  db.run(`CREATE TABLE IF NOT EXISTS affaires (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    numero TEXT UNIQUE,
+    designation TEXT,
+    client_id INTEGER,
+    statut TEXT,
+    FOREIGN KEY (client_id) REFERENCES clients(id)
+  )`);
+
+   //8) Création du table users
   db.run(`CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     matricule TEXT UNIQUE,
@@ -48,7 +139,8 @@ const db = new sqlite3.Database(path.join(__dirname, 'gestion_travaux.db'), (err
     }
   });
 
-  // NOUVEAU : Création de la table 'roles' si elle n'existe pas
+
+  //9) NOUVEAU : Création de la table 'roles' si elle n'existe pas
   db.run(`CREATE TABLE IF NOT EXISTS roles (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT UNIQUE NOT NULL
@@ -69,101 +161,6 @@ const db = new sqlite3.Database(path.join(__dirname, 'gestion_travaux.db'), (err
       });
     }
   });
-
-   // NOUVEAU : Création de la table 'mobile_users' IDENTIQUE AU db_helper.dart dans le FLUTTER
-  db.run(`CREATE TABLE IF NOT EXISTS mobile_users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      matricule TEXT UNIQUE,
-      nom TEXT,
-      prenoms TEXT,
-      fonction TEXT,
-      motDePasse TEXT NOT NULL
-  )`, (err) => {
-    if (err) {
-      console.error("Erreur de création de la table 'mobile_users':", err.message);
-    } else {
-      console.log('Table mobile_users vérifiée/créée.');
-    }
-  });
-
-
-  // Création du table personnels si nécessaire IDENTIQUE AU db_helper.dart dans le FLUTTER
-  db.run(`CREATE TABLE IF NOT EXISTS personnels (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    matricule TEXT UNIQUE,
-    nom TEXT,
-    prenoms TEXT,
-    fonction TEXT
-  )`);
-
-  // Création du table bonsdetravail si elle n'existe pas IDENTIQUE AU db_helper.dart dans le FLUTTER
-  db.run(`CREATE TABLE IF NOT EXISTS bonsdetravail (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    numero_bon INTEGER,
-    affaire TEXT,
-    client TEXT,
-    designation_travaux TEXT,
-    date_recu TEXT,
-    heure_total TEXT,
-    facturation TEXT,
-    adresse TEXT,
-    est_valide BOOLEAN
-  )`);
-
-  // Création de la table interventions IDENTIQUE AU db_helper.dart dans le FLUTTER
-  db.run(`CREATE TABLE IF NOT EXISTS interventions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    bon_id INTEGER,
-    du TEXT,
-    au TEXT,
-    matricule TEXT,
-    prenoms TEXT,
-    binome TEXT,
-    heure_debut TEXT,
-    heure_fin TEXT,
-    description_detail TEXT,
-    observation_detail TEXT,
-    FOREIGN KEY (bon_id) REFERENCES bonsdetravail(id)
-  )`);
-
-  // Création de la table observations IDENTIQUE AU db_helper.dart dans le FLUTTER
-  db.run(`CREATE TABLE IF NOT EXISTS observations (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    bon_id INTEGER,
-    tool_box_details TEXT,
-    tool_box_responsable TEXT,
-    rapport_incident TEXT,
-    suivi_dechets_details TEXT,
-    suivi_dechets_responsable TEXT,
-    hsse TEXT,
-    environnement TEXT,
-    date TEXT,
-    observateur TEXT,
-    type TEXT,
-    description TEXT,
-    gravite TEXT,
-    statut TEXT,
-    chantier TEXT,
-    FOREIGN KEY (bon_id) REFERENCES bonsdetravail(id)
-  )`);
-
-  // Création de la table clients
-  db.run(`CREATE TABLE IF NOT EXISTS clients (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    nom TEXT UNIQUE,
-    contact TEXT,
-    adresse TEXT
-  )`);
-
-  // Création de la table affaires
-  db.run(`CREATE TABLE IF NOT EXISTS affaires (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    numero TEXT UNIQUE,
-    designation TEXT,
-    client_id INTEGER,
-    statut TEXT,
-    FOREIGN KEY (client_id) REFERENCES clients(id)
-  )`);
 
 });
 
