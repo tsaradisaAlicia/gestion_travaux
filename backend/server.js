@@ -129,13 +129,22 @@ const db = new sqlite3.Database(path.join(__dirname, 'gestion_travaux.db'), (err
   // Création de la table observations
   db.run(`CREATE TABLE IF NOT EXISTS observations (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    bon_id INTEGER,
+    tool_box_details TEXT,
+    tool_box_responsable TEXT,
+    rapport_incident TEXT,
+    suivi_dechets_details TEXT,
+    suivi_dechets_responsable TEXT,
+    hsse TEXT,
+    environnement TEXT,
     date TEXT,
     observateur TEXT,
     type TEXT,
     description TEXT,
     gravite TEXT,
     statut TEXT,
-    chantier TEXT
+    chantier TEXT,
+    FOREIGN KEY (bon_id) REFERENCES bonsdetravail(id)
   )`);
 
   // Création de la table clients
