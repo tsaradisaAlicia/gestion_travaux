@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import * as XLSX from 'xlsx';
-import { FaUserPlus, FaTrash, FaEdit } from 'react-icons/fa';
+import { FaTrash, FaEdit } from 'react-icons/fa';
 import { saveAs } from 'file-saver';
-import { Page, Text, View, Document, StyleSheet, pdf, Image } from '@react-pdf/renderer';
-import { PDFDownloadLink } from '@react-pdf/renderer';
+import { StyleSheet, pdf } from '@react-pdf/renderer';
+
 import PersonnelsPDF from '../components/PDF/PersonnelsPDF';
 import axios from 'axios';
 
-const styles = StyleSheet.create({
+StyleSheet.create({
   page: { padding: 20 },
   section: { marginBottom: 10 },
   title: { fontSize: 16, fontWeight: 'bold', marginBottom: 5 },
@@ -64,7 +64,7 @@ function PersonnelsPage() {
 
   useEffect(() => {
     chargerPersonnels();
-  }, [userRole, canViewPersonnel]);
+  }, [userRole, canViewPersonnel, chargerPersonnels]);
 
 
   const reinitialiserFiltres = () => {
@@ -109,7 +109,7 @@ function PersonnelsPage() {
     }
   };
 
-  const enregistrerIndividuel = async (index) => {
+ async (index) => {
     const p = nouveaux[index];
     if (!p.matricule || !p.nom || !p.prenoms || !p.fonction) {
       alert("Veuillez remplir tous les champs du personnel.");
@@ -135,7 +135,7 @@ function PersonnelsPage() {
     }
   };
 
-  const enregistrerTous = async () => {
+  async () => {
     const incomplets = nouveaux.some(
       (p) => !p.matricule || !p.nom || !p.prenoms || !p.fonction
     );

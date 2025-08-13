@@ -174,7 +174,7 @@ const HomePage = () => {
 
       // --- 3. Fetch Personnels (toujours utile si la page PersonnelsPage l'utilise) ---
       // Si vous n'utilisez pas le nombre total de personnels ailleurs, cette ligne peut être commentée.
-      const personnelsResponse = await axios.get('http://localhost:5000/api/personnels', config);
+      await axios.get('http://localhost:5000/api/personnels', config);
       // const allPersonnels = personnelsResponse.data; // Non utilisé directement pour le compteur "actifs"
 
     } catch (error) {
@@ -195,7 +195,7 @@ const HomePage = () => {
   // Charger les données du tableau de bord au montage du composant
   useEffect(() => {
     fetchDashboardData();
-  }, [menuActif]);
+  }, [menuActif,fetchDashboardData]);
 
   const handleDeconnexion = () => {
     const confirmation = window.confirm("Êtes-vous sûr de vouloir vous déconnecter ?");

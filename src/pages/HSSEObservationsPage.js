@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import Papa from 'papaparse';
+
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { FaPlus, FaCheckCircle, FaTimesCircle, FaTrashAlt, FaEdit } from 'react-icons/fa';
+import { FaPlus, FaTrashAlt, FaEdit } from 'react-icons/fa';
 import axios from 'axios';
 
 const couleurs = {
@@ -86,7 +86,7 @@ const HSSEObservationsPage = () => {
 
   useEffect(() => {
     fetchObservations();
-  }, [userRole, canViewObservations]);
+  }, [userRole, canViewObservations,fetchObservations]);
 
   const ajouterObservation = async () => {
     if (!canManageObservations) {

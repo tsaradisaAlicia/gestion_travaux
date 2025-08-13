@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { PDFDownloadLink, pdf } from '@react-pdf/renderer';
+//import { PDFDownloadLink, pdf } from '@react-pdf/renderer';
 import { saveAs } from 'file-saver';
-import BonTravailPDF from '../components/PDF/BonsTravailPDF';
+
 // Les fonctions exporterBonsExcelFn et exporterTousBonsExcelFn ne sont plus directement utilisées ici
 // car leur logique est déplacée dans le worker. On peut les retirer si elles ne sont pas utilisées ailleurs.
 // import { exporterBonsExcel as exporterBonsExcelFn, exporterTousBonsExcel as exporterTousBonsExcelFn } from '../components/Excel/ExportExcel';
@@ -74,7 +74,7 @@ function BonsTravailPage() {
 
   useEffect(() => {
     fetchBons();
-  }, [userRole, canViewBons]);
+  }, [userRole, canViewBons, fetchBons]);
 
   // FILTRES
   const bonsFiltres = bons.filter((bon) => {

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { FaUserPlus, FaTrash, FaEdit } from 'react-icons/fa';
-import Papa from 'papaparse'; // Pas utilisé ici, peut être retiré si non nécessaire
+import { FaTrash, FaEdit } from 'react-icons/fa';
+
 import { PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 
 const COLORS = ['#1c5eecff', '#82ca9d', '#ffc658', '#ff8042', '#a4de6c', '#d0ed57']; // Plus de couleurs pour les statuts

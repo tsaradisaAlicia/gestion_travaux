@@ -1,8 +1,8 @@
 // InterventionsPage.js
 import React, { useState, useEffect } from 'react';
-import * as XLSX from 'xlsx';
+
 import { saveAs } from 'file-saver';
-import { Page, Text, View, Document, StyleSheet, pdf } from '@react-pdf/renderer';
+import { Page, Text, View, Document, StyleSheet } from '@react-pdf/renderer';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import InterventionPDF from '../components/PDF/InterventionPDF'; // Assurez-vous que ce composant est à jour avec les champs nécessaires
 import { FaSpinner } from 'react-icons/fa'; // Import du spinner
@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
 
 // Document PDF complet pour l'exportation de toutes les interventions filtrées (inchangé)
 // Ce composant sera utilisé par le Web Worker
-const InterventionsPDFGlobal = ({ data }) => (
+({ data }) => (
     <Document>
         {data.length > 0 ? (
             data.map((interv, idx) => (

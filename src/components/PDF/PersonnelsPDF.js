@@ -6,8 +6,8 @@ import {
   Text,
   View,
   StyleSheet,
-  Image,
-  Font,
+  Image
+  
 } from '@react-pdf/renderer';
 
 import logoGauche from '../../assets/titre.png';
