@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
-const { initDb } = require('./database/init_db'); 
+//const { initDb } = require('./database/init_db'); 
 
 const app = express();
 const PORT = 5000;
