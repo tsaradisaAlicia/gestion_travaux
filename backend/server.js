@@ -45,7 +45,9 @@ const db = new sqlite3.Database(path.join(__dirname, 'gestion_travaux.db'), (err
     heure_total TEXT,
     facturation TEXT,
     adresse TEXT,
-    est_valide BOOLEAN
+    est_valide INTEGER,
+    cree_par_formulaire INTEGER DEFAULT 0,
+    is_synced INTEGER DEFAULT 0
   )`);
 
   //3) Création de la table interventions IDENTIQUE AU db_helper.dart dans le FLUTTER
@@ -59,8 +61,10 @@ const db = new sqlite3.Database(path.join(__dirname, 'gestion_travaux.db'), (err
     binome TEXT,
     heure_debut TEXT,
     heure_fin TEXT,
+    total_heures REAL,
     description_detail TEXT,
     observation_detail TEXT,
+    is_synced INTEGER DEFAULT 0,
     FOREIGN KEY (bon_id) REFERENCES bonsdetravail(id)
   )`);
 
