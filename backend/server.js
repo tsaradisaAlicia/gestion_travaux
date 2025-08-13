@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const { initDb } = require('./database/init_db'); 
 
 const app = express();
 const PORT = 5000;
@@ -190,6 +191,9 @@ app.use('/api/clients-affaires', clientsAffairesRoutes);
 
 const mobileAuthRoutes = require('./routes/mobileAuth');
 app.use('/api/mobile', mobileAuthRoutes);
+
+const syncRoutes = require('./routes/sync');
+app.use('/api/sync', syncRoutes);
 
 // Supprimez ces routes directes de server.js car elles sont maintenant gérées par clientsAffairesRoutes
 // app.get('/api/clients', (req, res) => { /* ... */ });
