@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { FaTrash, FaEdit } from 'react-icons/fa';
-
+import { FaUserPlus, FaTrash, FaEdit } from 'react-icons/fa';
+import Papa from 'papaparse'; // Pas utilisé ici, peut être retiré si non nécessaire
 import { PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 
 const COLORS = ['#1c5eecff', '#82ca9d', '#ffc658', '#ff8042', '#a4de6c', '#d0ed57']; // Plus de couleurs pour les statuts
@@ -124,35 +124,41 @@ function ClientsAffairesPage() {
   };
 
   // NOUVELLE FONCTION: Gérer la suppression d'une affaire
-  const handleDeleteAffaire = (affaireId, clientId) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette affaire ?')) {
-      fetch(`http://localhost:5000/api/clients-affaires/${affaireId}`, {
-        method: 'DELETE',
-      })
-        .then(res => {
-          if (!res.ok) {
-            throw new Error('Erreur lors de la suppression de l\'affaire.');
-          }
-          return res.json();
-        })
-        .then(data => {
-          console.log('Suppression réussie :', data.message);
-          // Mettre à jour l'état de React pour retirer l'affaire supprimée
-          setClients(prevClients => {
-            return prevClients.map(client => {
-              if (client.id === clientId) {
-                return {
-                  ...client,
-                  affaires: client.affaires.filter(aff => aff.id !== affaireId)
-                };
-              }
-              return client;
-            }).filter(client => client.affaires.length > 0); // Optionnel: Si un client n'a plus d'affaires, le retirer de la liste
-          });
-        })
-        .catch(err => console.error('Erreur lors de la suppression de l\'affaire:', err));
+  const handleDeleteAffaire = async (affaireId, clientId) => {
+  if (!window.confirm("Êtes-vous sûr de vouloir supprimer cette affaire ?")) return;
+
+  try {
+    const response = await fetch(`http://localhost:5000/api/clients-affaires/affaires/${affaireId}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      throw new Error("Erreur lors de la suppression de l'affaire.");
     }
-  };
+
+    const data = await response.json();
+    console.log("Suppression réussie :", data.message);
+
+    // Mise à jour du state côté React
+    setClients(prevClients =>
+      prevClients
+        .map(client => {
+          if (client.id === clientId) {
+            return {
+              ...client,
+              affaires: client.affaires.filter(aff => aff.id !== affaireId)
+            };
+          }
+          return client;
+        })
+        .filter(client => client.affaires.length > 0) // Optionnel
+    );
+  } catch (err) {
+    console.error("Erreur lors de la suppression de l'affaire:", err);
+    alert("Impossible de supprimer l'affaire.");
+  }
+};
+
 
   // Fonction pour ouvrir le modal de modification
 const openEditModal = (affaire, client) => {
@@ -173,7 +179,7 @@ const closeEditModal = () => {
 };
 
 // NOUVELLE FONCTION: Gérer la soumission du formulaire de modification
-const handleUpdateAffaire = (e) => {
+const handleUpdateAffaire = async (e) => {
   e.preventDefault();
   if (!currentAffaireToEdit) return;
 
@@ -182,65 +188,64 @@ const handleUpdateAffaire = (e) => {
     numero,
     designation,
     statut,
-    clientId, // Récupérez l'ID du client
-    clientNom, clientAdresse, clientContact // Récupérez les infos client
+    clientId,
+    clientNom,
+    clientAdresse,
+    clientContact
   } = currentAffaireToEdit;
 
-  fetch(`http://localhost:5000/api/clients-affaires/${affaireId}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      numero,
-      designation,
-      statut,
-      clientId,        // Envoyer l'ID du client
-      clientNom,       // Envoyer le nom du client
-      clientAdresse,   // Envoyer l'adresse du client
-      clientContact    // Envoyer le contact du client
-    }),
-  })
-    .then(res => {
-      if (!res.ok) {
-        throw new Error('Erreur lors de la mise à jour.');
-      }
-      return res.json();
-    })
-    .then(data => {
-      console.log('Mise à jour réussie :', data.message);
-      // Mettre à jour l'état de React pour refléter les changements
-      setClients(prevClients => {
-        return prevClients.map(client => {
-          // Mettre à jour les infos du client si c'est le client concerné
-          if (data.updatedClient && client.id === data.updatedClient.id) {
-            client = {
-              ...client,
-              nom: data.updatedClient.nom,
-              adresse: data.updatedClient.adresse,
-              contact: data.updatedClient.contact
-            };
-          }
+  try {
+    const response = await fetch(`http://localhost:5000/api/clients-affaires/affaires/${affaireId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        numero,
+        designation,
+        statut,
+        clientId,
+        clientNom,
+        clientAdresse,
+        clientContact
+      }),
+    });
 
-          // Mettre à jour les affaires de ce client
-          const updatedAffaires = client.affaires.map(aff => {
-            if (data.updatedAffaire && aff.id === data.updatedAffaire.id) {
-              return {
-                ...aff,
-                numero: data.updatedAffaire.numero,
-                designation: data.updatedAffaire.designation,
-                statut: data.updatedAffaire.statut,
-              };
-            }
-            return aff;
-          });
-          return { ...client, affaires: updatedAffaires };
-        });
-      });
-      closeEditModal(); // Fermer le modal après succès
-    })
-    .catch(err => console.error('Erreur lors de la mise à jour:', err));
+    if (!response.ok) {
+      throw new Error('Erreur lors de la mise à jour.');
+    }
+
+    const data = await response.json();
+    console.log('Mise à jour réussie :', data.message);
+
+    // Mise à jour du state de façon plus simple
+    setClients(prevClients => 
+      prevClients.map(client => {
+        // Si c'est le client modifié, on met à jour ses infos
+        if (client.id === clientId) {
+          const updatedAffaires = client.affaires.map(aff => 
+            aff.id === affaireId
+              ? { ...aff, numero, designation, statut }
+              : aff
+          );
+          return { 
+            ...client, 
+            nom: clientNom, 
+            adresse: clientAdresse, 
+            contact: clientContact, 
+            affaires: updatedAffaires 
+          };
+        }
+        return client; // Sinon, on garde le client tel quel
+      })
+    );
+
+    closeEditModal(); // Fermer le modal
+  } catch (err) {
+    console.error('Erreur lors de la mise à jour:', err);
+    alert("Impossible de mettre à jour l'affaire.");
+  }
 };
 
-  return (
+return (
     <div className="p-8">
       <h2 className="text-2xl font-bold mb-4 text-gray-800">Clients / Affaires</h2>
 

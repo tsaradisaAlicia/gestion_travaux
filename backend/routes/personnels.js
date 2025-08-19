@@ -106,4 +106,63 @@ router.delete('/:id', authenticateToken, authorizeRoles(['Admin', 'RRH']), (req,
   });
 });
 
+
+// ✅ POST /sync - Synchroniser tous les personnels (pour Flutter)
+router.post('/sync', authenticateToken, authorizeRoles(['Admin', 'RRH']), (req, res) => {
+  const db = getDb(req);
+  const personnels = req.body.personnels;
+
+  if (!Array.isArray(personnels) || personnels.length === 0) {
+    return res.status(400).json({ status: 'error', message: 'Aucun personnel à synchroniser.' });
+  }
+
+  db.serialize(() => {
+    const stmt = db.prepare(`
+      INSERT INTO personnels (id, matricule, nom, prenoms, fonction)
+      VALUES (?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        matricule = excluded.matricule,
+        nom = excluded.nom,
+        prenoms = excluded.prenoms,
+        fonction = excluded.fonction
+    `);
+
+    for (const p of personnels) {
+      stmt.run([
+        p.id,
+        p.matricule,
+        p.nom,
+        p.prenoms,
+        p.fonction
+      ], (err) => {
+        if (err) {
+          console.error('❌ Erreur insertion personnel :', err.message);
+        }
+      });
+    }
+
+    stmt.finalize((err) => {
+      if (err) {
+        console.error('❌ Erreur finalisation personnels :', err.message);
+        return res.status(500).json({ status: 'error', message: 'Erreur lors de la synchro des personnels.' });
+      }
+      res.json({ status: 'success', message: `${personnels.length} personnels synchronisés avec succès.` });
+    });
+  });
+});
+
+// ✅ GET /techniciens - Récupérer uniquement les techniciens pour le formulaire
+router.get('/techniciens', authenticateToken, authorizeRoles(['Admin', 'RESPONSABLE TECHNIQUE', 'CHARGE D\'ETUDE', 'RRH']), (req, res) => {
+  const db = getDb(req);
+  const sql = `SELECT matricule, prenoms FROM personnels WHERE fonction = 'TECHNICIEN'`;
+  
+  db.all(sql, [], (err, rows) => {
+    if (err) {
+      console.error('Erreur récupération techniciens :', err.message);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(rows); // Flutter peut lister les prénoms pour la sélection dans le bon
+  });
+});
+
 module.exports = router;

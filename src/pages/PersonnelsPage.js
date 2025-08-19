@@ -108,7 +108,7 @@ function PersonnelsPage() {
       return null;
     }
   };
-
+/*
  async (index) => {
     const p = nouveaux[index];
     if (!p.matricule || !p.nom || !p.prenoms || !p.fonction) {
@@ -173,7 +173,7 @@ function PersonnelsPage() {
       // Le message d'erreur est déjà géré dans ajouterPersonnelAPI
     }
   };
-
+*/
   const enregistrerModification = async () => {
     if (!canAddEditDeletePersonnel) {
         alert("Vous n'avez pas les permissions pour modifier un personnel.");

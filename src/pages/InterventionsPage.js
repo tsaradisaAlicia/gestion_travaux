@@ -1,6 +1,5 @@
 // InterventionsPage.js
 import React, { useState, useEffect } from 'react';
-
 import { saveAs } from 'file-saver';
 import { Page, Text, View, Document, StyleSheet } from '@react-pdf/renderer';
 import { PDFDownloadLink } from '@react-pdf/renderer';
@@ -48,7 +47,8 @@ const styles = StyleSheet.create({
 
 // Document PDF complet pour l'exportation de toutes les interventions filtrées (inchangé)
 // Ce composant sera utilisé par le Web Worker
-({ data }) => (
+/*
+const FullInterventionDocument = ({ data }) => (
     <Document>
         {data.length > 0 ? (
             data.map((interv, idx) => (
@@ -70,6 +70,7 @@ const styles = StyleSheet.create({
         )}
     </Document>
 );
+*/
 
 
 function InterventionsPage() {
@@ -84,7 +85,7 @@ function InterventionsPage() {
     const [loadingExcel, setLoadingExcel] = useState(false);
 
     const userRole = localStorage.getItem('userRole');
-    const canViewInterventions = ['Admin', 'RESPONSABLE TECHNIQUE', 'CHARGE D\'ETUDE', 'Assistante\xA0DES\xA0DIRECTIONS', 'RRH', 'Superviseur', 'Technicien', 'Observateur'].includes(userRole);
+    const canViewInterventions = ['Admin', 'RESPONSABLE TECHNIQUE', 'CHARGE D\'ETUDE', 'Assistante DES DIRECTIONS', 'RRH', 'Superviseur', 'Technicien', 'Observateur'].includes(userRole);
 
     // Fonction utilitaire pour obtenir la configuration des headers avec le token
     const getAuthConfig = () => {

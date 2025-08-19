@@ -183,4 +183,56 @@ router.delete('/:id', authenticateToken, authorizeRoles(['Admin', 'RRH']), (req,
     });
 });
 
+// ✅ Nouvelle route pour synchroniser plusieurs bons de travail d'un coup
+router.post('/sync', authenticateToken, authorizeRoles(['Admin', 'RESPONSABLE TECHNIQUE', 'CHARGE D\'ETUDE']), (req, res) => {
+  const db = getDb(req);
+  const bons = req.body.bonsDeTravail; // Le payload envoyé par Flutter
+
+  if (!Array.isArray(bons) || bons.length === 0) {
+    return res.status(400).json({ status: 'error', message: 'Aucun bon à synchroniser.' });
+  }
+
+  db.serialize(() => {
+    const stmt = db.prepare(`
+      INSERT INTO bonsdetravail (id, numero_bon, affaire, client, designation_travaux, date_recu, heure_total, facturation, est_valide)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        numero_bon = excluded.numero_bon,
+        affaire = excluded.affaire,
+        client = excluded.client,
+        designation_travaux = excluded.designation_travaux,
+        date_recu = excluded.date_recu,
+        heure_total = excluded.heure_total,
+        facturation = excluded.facturation,
+        est_valide = excluded.est_valide
+    `);
+
+    for (const bon of bons) {
+      stmt.run([
+        bon.id,
+        bon.numero_bon,
+        bon.affaire,
+        bon.client,
+        bon.designation_travaux,
+        bon.date_recu,
+        bon.heure_total,
+        bon.facturation,
+        bon.est_valide
+      ], (err) => {
+        if (err) {
+          console.error('❌ Erreur insertion bon:', err.message);
+        }
+      });
+    }
+
+    stmt.finalize((err) => {
+      if (err) {
+        console.error('❌ Erreur finalisation:', err.message);
+        return res.status(500).json({ status: 'error', message: 'Erreur lors de la synchro.' });
+      }
+      res.json({ status: 'success', message: `${bons.length} bons synchronisés avec succès.` });
+    });
+  });
+});
+
 module.exports = router;

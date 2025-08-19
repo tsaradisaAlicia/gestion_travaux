@@ -74,7 +74,7 @@ function BonsTravailPage() {
 
   useEffect(() => {
     fetchBons();
-  }, [userRole, canViewBons, fetchBons]);
+  }, [userRole, canViewBons]);
 
   // FILTRES
   const bonsFiltres = bons.filter((bon) => {

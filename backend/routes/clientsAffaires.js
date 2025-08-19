@@ -135,30 +135,53 @@ router.post('/', async (req, res) => {
 
 // PUT pour modifier une affaire existante
 router.put('/affaires/:id', (req, res) => {
-  const db = getDb(req); // Utilisez getDb(req)
+  const db = getDb(req);
   const { id } = req.params;
-  const { numero, designation, statut } = req.body;
+  const { numero, designation, statut, clientId, clientNom, clientAdresse, clientContact } = req.body;
 
   if (!numero || !designation || !statut) {
-    return res.status(400).json({ error: 'Tous les champs (numéro, désignation, statut) sont obligatoires pour la mise à jour de l\'affaire.' });
+    return res.status(400).json({ error: 'Tous les champs de l\'affaire sont obligatoires.' });
   }
 
-  const sql = `UPDATE affaires SET numero = ?, designation = ?, statut = ? WHERE id = ?`;
-  db.run(sql, [numero, designation, statut, id], function (err) {
-    if (err) {
-      console.error(`Erreur lors de la mise à jour de l'affaire ${id}:`, err.message);
-      // Gérer l'erreur si le numéro d'affaire est unique et déjà pris pour un autre client (plus complexe ici)
-      if (err.message.includes('UNIQUE constraint failed')) {
-        return res.status(409).json({ error: 'Une autre affaire avec ce numéro existe déjà.' });
+  db.serialize(() => {
+    // 1️⃣ Mettre à jour l'affaire
+    db.run(
+      `UPDATE affaires SET numero = ?, designation = ?, statut = ? WHERE id = ?`,
+      [numero, designation, statut, id],
+      function (err) {
+        if (err) return res.status(500).json({ error: err.message });
+
+        // 2️⃣ Mettre à jour le client seulement si les infos client sont fournies
+        if (clientId && clientNom && clientAdresse && clientContact) {
+          db.run(
+            `UPDATE clients SET nom = ?, adresse = ?, contact = ? WHERE id = ?`,
+            [clientNom, clientAdresse, clientContact, clientId],
+            function (err2) {
+              if (err2) return res.status(500).json({ error: err2.message });
+
+              // 3️⃣ Récupérer affaire et client mis à jour
+              db.get(`SELECT * FROM affaires WHERE id = ?`, [id], (err3, updatedAffaire) => {
+                if (err3) return res.status(500).json({ error: err3.message });
+                db.get(`SELECT * FROM clients WHERE id = ?`, [clientId], (err4, updatedClient) => {
+                  if (err4) return res.status(500).json({ error: err4.message });
+                  res.status(200).json({ message: 'Affaire et client mis à jour.', updatedAffaire, updatedClient });
+                });
+              });
+            }
+          );
+        } else {
+          // Si pas de client à mettre à jour, juste renvoyer l'affaire
+          db.get(`SELECT * FROM affaires WHERE id = ?`, [id], (err5, updatedAffaire) => {
+            if (err5) return res.status(500).json({ error: err5.message });
+            res.status(200).json({ message: 'Affaire mise à jour.', updatedAffaire });
+          });
+        }
       }
-      return res.status(500).json({ error: err.message });
-    }
-    if (this.changes === 0) {
-      return res.status(404).json({ message: `Affaire avec l'ID ${id} non trouvée ou aucune modification effectuée.` });
-    }
-    res.status(200).json({ message: `Affaire avec l'ID ${id} mise à jour avec succès.` });
+    );
   });
 });
+
+
 
 // DELETE une affaire
 router.delete('/affaires/:id', (req, res) => {
@@ -183,27 +206,34 @@ router.delete('/affaires/:id', (req, res) => {
 
 // PUT pour modifier un client existant
 router.put('/clients/:id', (req, res) => {
-  const db = getDb(req); // Utilisez getDb(req)
+  const db = getDb(req);
   const { id } = req.params;
   const { nom, contact, adresse } = req.body;
 
   if (!nom || !contact || !adresse) {
-    return res.status(400).json({ error: 'Tous les champs (nom, contact, adresse) sont obligatoires pour la mise à jour du client.' });
+    return res.status(400).json({ error: 'Tous les champs (nom, contact, adresse) sont obligatoires.' });
   }
 
   const sql = `UPDATE clients SET nom = ?, contact = ?, adresse = ? WHERE id = ?`;
   db.run(sql, [nom, contact, adresse, id], function (err) {
     if (err) {
-      console.error(`Erreur lors de la mise à jour du client ${id}:`, err.message);
       if (err.message.includes('UNIQUE constraint failed')) {
         return res.status(409).json({ error: 'Un autre client avec ce nom existe déjà.' });
       }
       return res.status(500).json({ error: err.message });
     }
     if (this.changes === 0) {
-      return res.status(404).json({ message: `Client avec l'ID ${id} non trouvé ou aucune modification effectuée.` });
+      return res.status(404).json({ message: `Client avec l'ID ${id} non trouvé ou aucune modification.` });
     }
-    res.status(200).json({ message: `Client avec l'ID ${id} mis à jour avec succès.` });
+
+    // 🔹 Récupérer le client mis à jour
+    db.get(`SELECT * FROM clients WHERE id = ?`, [id], (err, updatedClient) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.status(200).json({
+        message: `Client avec l'ID ${id} mis à jour avec succès.`,
+        updatedClient
+      });
+    });
   });
 });
 

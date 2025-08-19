@@ -132,4 +132,74 @@ router.delete('/:id', authenticateToken, authorizeRoles(['Admin', 'RESPONSABLE T
   }
 });
 
+// ✅ Nouvelle route pour synchroniser plusieurs observations d'un coup
+router.post('/sync', authenticateToken, authorizeRoles(['Admin', 'RESPONSABLE TECHNIQUE', 'CHARGE D\'ETUDE']), (req, res) => {
+    const db = getDb(req);
+    const observations = req.body.observations;
+
+    if (!Array.isArray(observations) || observations.length === 0) {
+        return res.status(400).json({ status: 'error', message: 'Aucune observation à synchroniser.' });
+    }
+
+    db.serialize(() => {
+        const stmt = db.prepare(`
+            INSERT INTO observations (
+                id, bon_id, tool_box_details, tool_box_responsable, rapport_incident,
+                suivi_dechets_details, suivi_dechets_responsable, hsse, environnement,
+                date, observateur, type, description, gravite, statut, chantier
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+                bon_id = excluded.bon_id,
+                tool_box_details = excluded.tool_box_details,
+                tool_box_responsable = excluded.tool_box_responsable,
+                rapport_incident = excluded.rapport_incident,
+                suivi_dechets_details = excluded.suivi_dechets_details,
+                suivi_dechets_responsable = excluded.suivi_dechets_responsable,
+                hsse = excluded.hsse,
+                environnement = excluded.environnement,
+                date = excluded.date,
+                observateur = excluded.observateur,
+                type = excluded.type,
+                description = excluded.description,
+                gravite = excluded.gravite,
+                statut = excluded.statut,
+                chantier = excluded.chantier
+        `);
+
+        for (const obs of observations) {
+            stmt.run([
+                obs.id,
+                obs.bon_id,
+                obs.tool_box_details,
+                obs.tool_box_responsable,
+                obs.rapport_incident,
+                obs.suivi_dechets_details,
+                obs.suivi_dechets_responsable,
+                obs.hsse,
+                obs.environnement,
+                obs.date,
+                obs.observateur,
+                obs.type,
+                obs.description,
+                obs.gravite,
+                obs.statut,
+                obs.chantier
+            ], (err) => {
+                if (err) {
+                    console.error('❌ Erreur insertion observation:', err.message);
+                }
+            });
+        }
+
+        stmt.finalize((err) => {
+            if (err) {
+                console.error('❌ Erreur finalisation observations:', err.message);
+                return res.status(500).json({ status: 'error', message: 'Erreur lors de la synchro des observations.' });
+            }
+            res.json({ status: 'success', message: `${observations.length} observations synchronisées avec succès.` });
+        });
+    });
+});
+
 module.exports = router;
