@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { FaUser, FaLock } from 'react-icons/fa';
+// Importez les nouvelles icônes nécessaires
+import { FaUser, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import logoThermocool from './assets/logo_thermocool.png';
 import fondBackground from './assets/fond_gestion_travaux.png';
 import { useNavigate } from 'react-router-dom';
@@ -9,6 +10,7 @@ function LoginPage() {
   const [matricule, setMatricule] = useState('');
   const [motDePasse, setMotDePasse] = useState('');
   const [erreur, setErreur] = useState('');
+  const [showPassword, setShowPassword] = useState(false); // ✅ Nouvel état pour la visibilité
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
@@ -29,13 +31,10 @@ function LoginPage() {
 
       if (response.data.message === 'Connexion réussie') {
         setErreur('');
-        // ✅ Stockez le token sous la clé 'token' (standardisé)
         localStorage.setItem('token', response.data.token);
-        localStorage.setItem('userRole', response.data.user.roleName); // Utilisez roleName ici
+        localStorage.setItem('userRole', response.data.user.roleName);
         localStorage.setItem('userMatricule', response.data.user.matricule);
         localStorage.setItem('userName', response.data.user.nom + ' ' + response.data.user.prenoms);
-
-
         navigate('/accueil');
       } else {
         setErreur(response.data.message || 'Erreur de connexion inattendue.');
@@ -93,12 +92,23 @@ function LoginPage() {
               <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 id="motDePasse"
-                type="password"
-                className="w-full pl-10 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                // ✅ Utilisez showPassword pour définir le type de l'input
+                type={showPassword ? 'text' : 'password'}
+                className="w-full pl-10 pr-10 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={motDePasse}
                 onChange={(e) => setMotDePasse(e.target.value)}
                 required
               />
+              {/* ✅ Ajoutez le bouton pour basculer la visibilité */}
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 focus:outline-none"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'Cacher le mot de passe' : 'Montrer le mot de passe'}
+              >
+                {/* ✅ Affichez l'icône correcte en fonction de l'état */}
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
             </div>
           </div>
 

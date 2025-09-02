@@ -152,17 +152,13 @@ router.post('/sync', authenticateToken, authorizeRoles(['Admin', 'RRH']), (req, 
 });
 
 // ✅ GET /techniciens - Récupérer uniquement les techniciens pour le formulaire
-router.get('/techniciens', authenticateToken, authorizeRoles(['Admin', 'RESPONSABLE TECHNIQUE', 'CHARGE D\'ETUDE', 'RRH']), (req, res) => {
-  const db = getDb(req);
-  const sql = `SELECT matricule, prenoms FROM personnels WHERE fonction = 'TECHNICIEN'`;
-  
+router.get('/techniciens', authenticateToken, authorizeRoles(['Admin', 'RESPONSABLE TECHNIQUE', 'CHARGE D\'ETUDE', 'Assistante DES DIRECTIONS', 'RRH']), (req, res) => {
+  const sql = `SELECT matricule, nom, prenoms FROM personnels WHERE fonction = 'TECHNICIEN'`;
   db.all(sql, [], (err, rows) => {
-    if (err) {
-      console.error('Erreur récupération techniciens :', err.message);
-      return res.status(500).json({ error: err.message });
-    }
-    res.json(rows); // Flutter peut lister les prénoms pour la sélection dans le bon
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
   });
 });
+
 
 module.exports = router;

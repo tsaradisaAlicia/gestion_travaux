@@ -260,7 +260,7 @@ const HSSEObservationsPage = () => {
 
               <textarea placeholder="Description" className="p-2 border rounded" value={nouvelleObservation.description} onChange={(e) => setNouvelleObservation({ ...nouvelleObservation, description: e.target.value })} required />
               <select className="p-2 border rounded" value={nouvelleObservation.gravite} onChange={(e) => setNouvelleObservation({ ...nouvelleObservation, gravite: e.target.value })} required>
-                <option value="">-- Gravite --</option>
+                <option value="">-- Gravité --</option>
                 <option>Mineure</option>
                 <option>Majeure</option>
                 <option>Critique</option>
@@ -298,6 +298,7 @@ const HSSEObservationsPage = () => {
               <th className="px-4 py-2">Type</th>
               <th className="px-4 py-2">Description</th>
               <th className="px-4 py-2">Gravité</th>
+               <th className="px-4 py-2">Chnatier/Lieu</th>
               <th className="px-4 py-2">Statut</th>
               <th className="px-4 py-2">Action</th>
             </tr>
@@ -311,6 +312,7 @@ const HSSEObservationsPage = () => {
                   <td className="px-4 py-2">{obs.type}</td>
                   <td className="px-4 py-2">{obs.description}</td>
                   <td className="px-4 py-2">{obs.gravite}</td>
+                  <td className="px-4 py-2">{obs.chantier}</td>
                   <td className="px-4 py-2">{obs.statut === 'Traitée' ? <span className="text-green-600 font-bold">Traitée</span> : <span className="text-red-600 font-bold">Non traitée</span>}</td>
                   <td className="px-4 py-2 whitespace-nowrap">
                     {canManageObservations && (
@@ -375,7 +377,7 @@ const HSSEObservationsPage = () => {
 
                 <label className="block text-gray-700 text-sm font-bold mb-1">Gravité:</label>
                 <select className="p-2 border rounded" value={currentObservationToEdit.gravite} onChange={(e) => setCurrentObservationToEdit({ ...currentObservationToEdit, gravite: e.target.value })} required>
-                  <option value="">-- Gravite --</option>
+                  <option value="">-- Gravité --</option>
                   <option>Mineure</option>
                   <option>Majeure</option>
                   <option>Critique</option>

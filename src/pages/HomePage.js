@@ -35,6 +35,7 @@ const HomePage = () => {
 
   // Nouveaux états pour les données du tableau de bord
   const [bonsNonValidesCount, setBonsNonValidesCount] = useState(0);
+
   const [interventionsTodayCount, setInterventionsTodayCount] = useState(0);
   // ✅ Renommé pour plus de clarté, ce sera le nombre d'intervenants actifs aujourd'hui
   const [intervenantsTodayCount, setIntervenantsTodayCount] = useState(0);
@@ -98,7 +99,7 @@ const HomePage = () => {
       const bonsResponse = await axios.get('http://localhost:5000/api/bons', config);
       const allBons = bonsResponse.data;
 
-      const nonValides = allBons.filter(bon => bon.statut === 'Non validé').length;
+      const nonValides = allBons.filter(bon => bon.est_valide === "Non validé").length;
       setBonsNonValidesCount(nonValides);
 
       // --- 2. Fetch Interventions ---
