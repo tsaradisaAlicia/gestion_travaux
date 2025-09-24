@@ -79,7 +79,7 @@ function BonsTravailPage() {
   // FILTRES
   const bonsFiltres = bons.filter((bon) => {
     const bonClient = bon.client?.toLowerCase() || "";
-    const bonStatut = bon.est_valide ? "validé" : "non validé";
+    const bonStatut = bon.est_valide ? "Validé" : "Non validé";
 
     const aBonneDate = bon.interventions?.some((i) => {
       if (!i.du) return false;
