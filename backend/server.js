@@ -200,6 +200,10 @@ app.use('/api/sync', syncRoutes);
 // app.get('/api/clients', (req, res) => { /* ... */ });
 // app.get('/api/affaires/:client_id', (req, res) => { /* ... */ });
 
+// 🚨 LIGNE CRUCIALE : Doit être après le 'require' et doit pointer vers un routeur valide.
+const performanceRoutes = require('./routes/performanceRoutes');
+app.use('/api/performance', performanceRoutes); 
+
 
 app.listen(PORT, () => {
   console.log(`🚀 Serveur backend démarré sur http://localhost:${PORT}`);

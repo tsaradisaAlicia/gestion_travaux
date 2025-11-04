@@ -4,8 +4,9 @@ import { saveAs } from 'file-saver';
 import { Page, Text, View, Document, StyleSheet } from '@react-pdf/renderer';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import InterventionPDF from '../components/PDF/InterventionPDF'; // Assurez-vous que ce composant est à jour avec les champs nécessaires
-import { FaSpinner } from 'react-icons/fa'; // Import du spinner
+import { FaSpinner, FaUndo } from 'react-icons/fa'; // Import du spinner
 import axios from 'axios'; // Import d'axios pour les requêtes authentifiées
+import { useNavigate } from 'react-router-dom';
 
 // PDF Styles (inchangés, mais déplacés ici pour la visibilité du worker)
 const styles = StyleSheet.create({
@@ -79,6 +80,9 @@ function InterventionsPage() {
     const [error, setError] = useState(null);
     const [searchDate, setSearchDate] = useState('');
     const [searchNom, setSearchNom] = useState(''); // Pour prenoms ou binome
+
+    //Pour navigation de signalement
+    const navigate = useNavigate();
 
     // Nouveaux états pour gérer les chargements des exports
     const [loadingPdf, setLoadingPdf] = useState(false);
@@ -245,6 +249,23 @@ function InterventionsPage() {
         };
     };
 
+    // ✅ NOUVELLE FONCTION POUR LE RAPPEL
+    const handleSignalerRappel = (interventionOrigine) => {
+        // Cette fonction prépare les données et redirige vers la page de création d'une nouvelle intervention
+        console.log("Préparation d'un rappel pour l'intervention ID:", interventionOrigine.id);
+        
+        // On navigue vers la page de création d'intervention
+        // En utilisant 'state', on passe l'ID de l'intervention d'origine et un flag 'isRappel'.
+        navigate('/nouvelle-intervention', { // ⚠️ ASSUREZ-VOUS QUE C'EST LA BONNE ROUTE
+            state: {
+                isRappel: true,
+                interventionOrigineId: interventionOrigine.id, // L'ID à envoyer au backend
+                clientNom: interventionOrigine.client,      // Pour pré-remplir
+                designation: interventionOrigine.designation // Pour pré-remplir
+            }
+        });
+    };
+
     if (!canViewInterventions) {
         return (
             <div className="text-center p-8 text-red-600 font-bold">
@@ -350,6 +371,15 @@ function InterventionsPage() {
                                             {loadingExcel ? <FaSpinner className="animate-spin mr-1" /> : null}
                                             Excel
                                         </button>
+                                    {/* 👇 LE BOUTON DE SIGNALEMENT DE RAPPEL 👇 */}
+                                        <button
+                                            onClick={() => handleSignalerRappel(i)}
+                                            title="Signaler un appel à ré-intervention (Rappel)"
+                                            className="text-orange-500 hover:text-orange-700 ml-2 flex items-center"
+                                        >
+                                            <FaUndo /> 
+                                        </button>
+                                        
                                     </td>
                                 </tr>
                             ))

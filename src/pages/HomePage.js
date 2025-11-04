@@ -8,6 +8,8 @@ import {
   FaShieldAlt,
   FaUsers,
   FaSignOutAlt,
+
+  FaChartLine,
 } from 'react-icons/fa';
 import logoThermocool from '../assets/logo_thermocool.png';
 import BonsTravailPage from './BonsTravailPage';
@@ -16,6 +18,7 @@ import PersonnelsPage from './PersonnelsPage';
 import ClientsAffairesPage from './ClientsAffairesPage';
 import HSSEObservationsPage from './HSSEObservationsPage';
 import UtilisateursPage from './UtilisateursPage';
+import AnalysePerformancePage from './AnalysePerformancePage';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
@@ -219,7 +222,7 @@ const HomePage = () => {
               src={logoThermocool}
               alt="Logo"
               className="w-28 h-20 rounded-full border-2 border-white"
-            />
+            />  
           </div>
           <nav className="mt-6">
             <ul className="space-y-2 px-4">
@@ -280,7 +283,17 @@ const HomePage = () => {
                   }`}
                 >
                   <FaShieldAlt />
-                  <span>HSSE / Observations</span>
+                  <span>HSE / Observations</span>
+                </li>
+                {/* 👈 NOUVEAU MENU : Analyse & Performance */}
+                <li
+                  onClick={() => setMenuActif('performance')}
+                  className={`flex items-center space-x-3 p-2 rounded cursor-pointer ${
+                    menuActif === 'performance' ? 'bg-blue-700 text-white' : 'hover:bg-blue-700 hover:text-white'
+                  }`}
+                >
+                  <FaChartLine />
+                  <span>Analyse & Performance</span>
                 </li>
 
                 <li
@@ -382,6 +395,8 @@ const HomePage = () => {
         {menuActif === 'personnels' && <PersonnelsPage />}
         {menuActif === 'clients' && <ClientsAffairesPage />}
         {menuActif === 'hsse' && <HSSEObservationsPage />}
+        {/* 👈 AJOUT DU NOUVEAU COMPOSANT DE PAGE */}
+        {menuActif === 'performance' && <AnalysePerformancePage />}
         {menuActif === 'utilisateurs' && <UtilisateursPage />}
       </div>
     </div>

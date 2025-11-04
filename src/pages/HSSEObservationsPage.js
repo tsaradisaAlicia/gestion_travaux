@@ -241,7 +241,7 @@ const HSSEObservationsPage = () => {
 
   return (
     <div className="p-8">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Observations HSSE</h2>
+      <h2 className="text-2xl font-bold text-gray-800 mb-6">Observations HSE</h2>
       <div className="grid md:grid-cols-2 gap-8 mb-6">
         {canManageObservations && (
           <div className="bg-white rounded shadow p-4">
