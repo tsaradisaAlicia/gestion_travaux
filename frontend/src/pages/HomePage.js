@@ -32,6 +32,9 @@ import {
   Legend,
 } from 'recharts';
 
+// VEUILLEZ REMPLACER CETTE ADRESSE SI VOTRE DOMAINE RENDER CHANGE !
+const API_BASE_URL = "https://gestion-travaux-de-thermocool.onrender.com";
+
 const HomePage = () => {
   const [menuActif, setMenuActif] = useState('dashboard');
   const navigate = useNavigate();
@@ -99,14 +102,14 @@ const HomePage = () => {
 
     try {
       // --- 1. Fetch Bons de Travail ---
-      const bonsResponse = await axios.get('http://localhost:5000/api/bons', config);
+      const bonsResponse = await axios.get(`${API_BASE_URL}/api/bons`, config);
       const allBons = bonsResponse.data;
 
       const nonValides = allBons.filter(bon => bon.est_valide === "Non validé").length;
       setBonsNonValidesCount(nonValides);
 
       // --- 2. Fetch Interventions ---
-      const interventionsResponse = await axios.get('http://localhost:5000/api/interventions', config);
+      const interventionsResponse = await axios.get(`${API_BASE_URL}/api/interventions`, config);
       const allInterventions = interventionsResponse.data;
 
       const today = new Date();
@@ -178,7 +181,7 @@ const HomePage = () => {
 
       // --- 3. Fetch Personnels (toujours utile si la page PersonnelsPage l'utilise) ---
       // Si vous n'utilisez pas le nombre total de personnels ailleurs, cette ligne peut être commentée.
-      const personnelsResponse = await axios.get('http://localhost:5000/api/personnels', config);
+      const personnelsResponse = await axios.get(`${API_BASE_URL}/api/personnels`, config);
       // const allPersonnels = personnelsResponse.data; // Non utilisé directement pour le compteur "actifs"
 
     } catch (error) {

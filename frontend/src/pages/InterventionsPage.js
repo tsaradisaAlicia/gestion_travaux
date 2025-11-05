@@ -8,6 +8,11 @@ import { FaSpinner, FaUndo } from 'react-icons/fa'; // Import du spinner
 import axios from 'axios'; // Import d'axios pour les requêtes authentifiées
 import { useNavigate } from 'react-router-dom';
 
+// 💡 NOUVELLE URL DE L'API DE RENDER
+// VEUILLEZ REMPLACER CETTE ADRESSE SI VOTRE DOMAINE RENDER CHANGE !
+const API_BASE_URL = "https://gestion-travaux-de-thermocool.onrender.com";
+
+
 // PDF Styles (inchangés, mais déplacés ici pour la visibilité du worker)
 const styles = StyleSheet.create({
     page: { padding: 20 },
@@ -122,8 +127,9 @@ function InterventionsPage() {
                 return;
             }
 
-            try {
-                const response = await axios.get('http://localhost:5000/api/interventions', config);
+             try {
+                // Remplacement de l'URL codée en dur par la constante API_BASE_URL
+                const response = await axios.get(`${API_BASE_URL}/api/interventions`, config);
                 setInterventions(response.data);
             } catch (err) {
                 console.error("Erreur lors de la récupération des interventions:", err.response ? err.response.data : err.message);
