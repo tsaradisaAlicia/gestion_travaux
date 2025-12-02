@@ -4,7 +4,8 @@ import axios from 'axios';
 
 // 💡 ATTENTION : REMPLACEZ CETTE CHAÎNE PAR L'URL DE VOTRE BACKEND DÉPLOYÉ SUR RENDER
 // Exemple : 'https://gestion-paie-backend-xyz.onrender.com'
-const API_BASE_URL = 'https://gestion-travaux-de-thermocool.onrender.com'; 
+//const API_BASE_URL = 'https://gestion-travaux-de-thermocool.onrender.com'; 
+const API_URL = process.env.REACT_APP_API_URL;
 
 const UtilisateursPage = () => {
   const [utilisateurs, setUtilisateurs] = useState([]);
@@ -58,7 +59,7 @@ const UtilisateursPage = () => {
 
     try {
       // 🛑 LIEN MODIFIÉ : Utilisation de la constante API_BASE_URL
-      const response = await axios.get(`${API_BASE_URL}/api/users`, config);
+      const response = await axios.get(`${API_URL}/api/users`, config);
       setUtilisateurs(response.data);
     } catch (error) {
       console.error('Erreur lors du chargement des utilisateurs:', error.response ? error.response.data : error.message);
@@ -89,7 +90,7 @@ const UtilisateursPage = () => {
 
     try {
       // 🛑 LIEN MODIFIÉ : Utilisation de la constante API_BASE_URL
-      const response = await axios.get(`${API_BASE_URL}/api/users/roles`, config);
+      const response = await axios.get(`${API_URL}/api/roles`, config);
       setRolesDisponibles(response.data);
       if (response.data.length > 0) {
         setNouvelUtilisateur(prev => ({ ...prev, roleId: response.data[0].id }));
@@ -127,7 +128,7 @@ const UtilisateursPage = () => {
 
     try {
       // 🛑 LIEN MODIFIÉ : Utilisation de la constante API_BASE_URL
-      await axios.post(`${API_BASE_URL}/api/users`, nouvelUtilisateur, config);
+      await axios.post(`${API_URL}/api/users`, nouvelUtilisateur, config);
       // Remplacer alert()
       console.log('Utilisateur ajouté avec succès !');
       setNouvelUtilisateur({ matricule: '', nom: '', prenoms: '', roleId: rolesDisponibles[0]?.id || '', motDePasse: '', email: '' });
@@ -165,7 +166,7 @@ const UtilisateursPage = () => {
         ...(utilisateurEnEdition.motDePasse && { motDePasse: utilisateurEnEdition.motDePasse })
       };
       // 🛑 LIEN MODIFIÉ : Utilisation de la constante API_BASE_URL
-      await axios.put(`${API_BASE_URL}/api/users/${utilisateurEnEdition.id}`, dataToUpdate, config);
+      await axios.put(`${API_URL}/api/users/${utilisateurEnEdition.id}`, dataToUpdate, config);
       // Remplacer alert()
       console.log('Utilisateur modifié avec succès !');
       setUtilisateurEnEdition(null);
@@ -192,7 +193,7 @@ const UtilisateursPage = () => {
 
       try {
         // 🛑 LIEN MODIFIÉ : Utilisation de la constante API_BASE_URL
-        await axios.delete(`${API_BASE_URL}/api/users/${id}`, config);
+        await axios.delete(`${API_URL}/api/users/${id}`, config);
         // Remplacer alert()
         console.log('Utilisateur supprimé avec succès !');
         fetchUtilisateurs();

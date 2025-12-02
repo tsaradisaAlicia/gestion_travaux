@@ -19,8 +19,8 @@ import PerformanceTechnicien from '../components/PerformanceTechnicien';
 
 
 // VEUILLEZ REMPLACER CETTE ADRESSE SI VOTRE DOMAINE RENDER CHANGE !
-const API_BASE_URL = "https://gestion-travaux-de-thermocool.onrender.com";
-
+//const API_BASE_URL = "https://gestion-travaux-de-thermocool.onrender.com";
+const API_URL = process.env.REACT_APP_API_URL;
 
 // Couleurs pour les graphiques (à adapter)
 const COLORS = ['#FF4560', '#008FFB', '#00E396', '#FEB019', '#775DD0', '#A8A8A8'];
@@ -51,7 +51,7 @@ const AnalysePerformancePage = () => {
     setIsLoading(true);
     try {
       // ⚠️ ADAPTER L'ENDPOINT : Vous devrez créer cet endpoint dans votre API Node.js (ex: /api/performance/analyse-pannes)
-      const response = await axios.get(`${API_BASE_URL}/api/performance/analyse-pannes`, config);
+      const response = await axios.get(`${API_URL}/api/performance/analyse-pannes`, config);
       const data = response.data;
       
       // Simuler des données pour la démonstration tant que l'API n'est pas prête

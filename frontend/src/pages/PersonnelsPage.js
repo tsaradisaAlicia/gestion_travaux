@@ -8,8 +8,8 @@ import PersonnelsPDF from '../components/PDF/PersonnelsPDF';
 import axios from 'axios';
 
 // 💡 URL DE BASE DE L'API (À VÉRIFIER SI C'EST LA BONNE ADRESSE ACTUELLE)
-const API_BASE_URL = 'https://gestion-travaux-de-thermocool.onrender.com';
-
+//const API_BASE_URL = 'https://gestion-travaux-de-thermocool.onrender.com';
+const API_URL = process.env.REACT_APP_API_URL;
 
 StyleSheet.create({
   page: { padding: 20 },
@@ -48,7 +48,7 @@ function PersonnelsPage() {
       const config = {
         headers: { Authorization: `Bearer ${token}` }
       };
-      const response = await axios.get(`${API_BASE_URL}/api/personnels`, config);
+      const response = await axios.get(`${API_URL}/api/personnels`, config);
       const uniques = Array.from(
         new Map(response.data.map((p) => [p.matricule, p])).values()
       );
@@ -64,7 +64,7 @@ function PersonnelsPage() {
         alert("Une erreur est survenue lors du chargement des personnels.");
       }
     }
-  };
+  };  
 
   useEffect(() => {
     chargerPersonnels();
@@ -102,7 +102,7 @@ function PersonnelsPage() {
       const config = {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
       };
-      const response = await axios.post(`${API_BASE_URL}/api/personnels`, personnelData, config);
+      const response = await axios.post(`${API_URL}/api/personnels`, personnelData, config);
 
       alert('Personnel ajouté avec succès !');
       return response.data;
@@ -193,7 +193,7 @@ function PersonnelsPage() {
       const config = {
           headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
       };
-      const response = await axios.put(`${API_BASE_URL}/api/personnels/${personnelEdit.id}`, personnelEdit, config);
+      const response = await axios.put(`${API_URL}/api/personnels/${personnelEdit.id}`, personnelEdit, config);
 
       if (response.status !== 200) {
         throw new Error('Erreur lors de la mise à jour');
@@ -220,7 +220,7 @@ function PersonnelsPage() {
         const config = {
             headers: { Authorization: `Bearer ${token}` }
         };
-        const response = await axios.delete(`${API_BASE_URL}/api/personnels/${id}`, config);
+        const response = await axios.delete(`${API_URL}/api/personnels/${id}`, config);
 
         if (response.status !== 200) {
             throw new Error("Erreur suppression");

@@ -10,7 +10,8 @@ import { FaEdit, FaSave, FaTimes, FaSpinner } from 'react-icons/fa'; // Ajout de
 
 
 // VEUILLEZ REMPLACER CETTE ADRESSE SI VOTRE DOMAINE RENDER CHANGE !
-const API_BASE_URL = "https://gestion-travaux-de-thermocool.onrender.com";
+//const API_BASE_URL = "https://gestion-travaux-de-thermocool.onrender.com";
+const API_URL = process.env.REACT_APP_API_URL;
 
 function BonsTravailPage() {
   const [searchClient, setSearchClient] = useState('');
@@ -57,7 +58,7 @@ function BonsTravailPage() {
     }
 
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/bons`, config);
+      const res = await axios.get(`${API_URL}/api/bons`, config);
       const bonsData = res.data;
       console.log("📥 Données reçues de /api/bons :", bonsData);
       setBons(bonsData);
@@ -119,7 +120,7 @@ function BonsTravailPage() {
     if (!config) return;
 
     try {
-      const response = await axios.put(`${API_BASE_URL}/api/bons/${bonId}`, {
+      const response = await axios.put(`${API_URL}/api/bons/${bonId}`, {
         facturation: editingFacturationValue
       }, config);
 

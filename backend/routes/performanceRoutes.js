@@ -33,6 +33,4 @@ router.get('/analyse-pannes', authenticateToken, (req, res) => {
     res.json(simulationData);
 });
 
-
-
 module.exports = router; // 👈 EXPORTATION CRUCIALE
