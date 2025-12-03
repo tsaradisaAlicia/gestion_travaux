@@ -6,7 +6,7 @@ import { PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 
 // VEUILLEZ REMPLACER CETTE ADRESSE SI VOTRE DOMAINE RENDER CHANGE !
 //const API_BASE_URL = "https://gestion-travaux-de-thermocool.onrender.com";
-const API_URL = process.env.REACT_APP_API_URL;
+//const API_URL = process.env.REACT_APP_API_URL;
 
 const COLORS = ['#1c5eecff', '#82ca9d', '#ffc658', '#ff8042', '#a4de6c', '#d0ed57']; // Plus de couleurs pour les statuts
 
@@ -25,7 +25,7 @@ function ClientsAffairesPage() {
   const [currentAffaireToEdit, setCurrentAffaireToEdit] = useState(null); // Contient l'affaire + client associé
 
   useEffect(() => {
-    fetch(`${API_URL}/api/clients-affaires`)
+    fetch('http://localhost:5000/api/clients-affaires')
       .then((res) => res.json())
       .then((data) => {
         console.log('Données reçues de l\'API clients-affaires :', data);
@@ -83,7 +83,7 @@ function ClientsAffairesPage() {
       designation: newAffaireDesignation, // Inclure la désignation
     };
 
-    fetch(`${API_URL}/api/clients-affaires`, {
+    fetch('http://localhost:5000/api/clients-affaires', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newEntry),
@@ -133,7 +133,7 @@ function ClientsAffairesPage() {
   if (!window.confirm("Êtes-vous sûr de vouloir supprimer cette affaire ?")) return;
 
   try {
-    const response = await fetch(`${API_URL}/api/clients-affaires/affaires/${affaireId}`, {
+    const response = await fetch(`http://localhost:5000/api/clients-affaires/affaires/${affaireId}`, {
       method: "DELETE",
     });
 
@@ -200,7 +200,7 @@ const handleUpdateAffaire = async (e) => {
   } = currentAffaireToEdit;
 
   try {
-    const response = await fetch(`${API_URL}/api/clients-affaires/affaires/${affaireId}`, {
+    const response = await fetch(`http://localhost:5000/api/clients-affaires/affaires/${affaireId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

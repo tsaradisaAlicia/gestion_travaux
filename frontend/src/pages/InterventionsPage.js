@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 // 💡 NOUVELLE URL DE L'API DE RENDER
 // VEUILLEZ REMPLACER CETTE ADRESSE SI VOTRE DOMAINE RENDER CHANGE !
 //const API_BASE_URL = "https://gestion-travaux-de-thermocool.onrender.com";
-const API_URL = process.env.REACT_APP_API_URL;
+//const API_URL = process.env.REACT_APP_API_URL;
 
 // PDF Styles (inchangés, mais déplacés ici pour la visibilité du worker)
 const styles = StyleSheet.create({
@@ -129,7 +129,7 @@ function InterventionsPage() {
 
              try {
                 // Remplacement de l'URL codée en dur par la constante API_BASE_URL
-                const response = await axios.get(`${API_URL}/api/interventions`, config);
+                const response = await axios.get('http://localhost:5000/api/interventions', config);
                 setInterventions(response.data);
             } catch (err) {
                 console.error("Erreur lors de la récupération des interventions:", err.response ? err.response.data : err.message);

@@ -11,7 +11,7 @@ import { FaEdit, FaSave, FaTimes, FaSpinner } from 'react-icons/fa'; // Ajout de
 
 // VEUILLEZ REMPLACER CETTE ADRESSE SI VOTRE DOMAINE RENDER CHANGE !
 //const API_BASE_URL = "https://gestion-travaux-de-thermocool.onrender.com";
-const API_URL = process.env.REACT_APP_API_URL;
+//const API_URL = process.env.REACT_APP_API_URL;
 
 function BonsTravailPage() {
   const [searchClient, setSearchClient] = useState('');
@@ -28,7 +28,7 @@ function BonsTravailPage() {
 
   const userRole = localStorage.getItem('userRole');
   const canEditFacturation = ['Admin', 'RRH'].includes(userRole);
-  const canViewBons = ['Admin', 'RESPONSABLE TECHNIQUE', 'CHARGE D\'ETUDE', 'Assistante\xA0DES\xA0DIRECTIONS', 'RRH', 'Superviseur', 'Technicien', 'Observateur'].includes(userRole);
+  const canViewBons = ['Admin', 'RESPONSABLE TECHNIQUE', 'CHARGE D\'ETUDE', 'Assistante DES DIRECTIONS', 'RRH', 'Superviseur', 'Technicien', 'Observateur'].includes(userRole);
 
   const getAuthConfig = () => {
     const token = localStorage.getItem('token');
@@ -58,7 +58,7 @@ function BonsTravailPage() {
     }
 
     try {
-      const res = await axios.get(`${API_URL}/api/bons`, config);
+      const res = await axios.get('http://localhost:5000/api/bons', config);
       const bonsData = res.data;
       console.log("📥 Données reçues de /api/bons :", bonsData);
       setBons(bonsData);
@@ -120,7 +120,7 @@ function BonsTravailPage() {
     if (!config) return;
 
     try {
-      const response = await axios.put(`${API_URL}/api/bons/${bonId}`, {
+      const response = await axios.put(`http://localhost:5000/api/bons/${bonId}`, {
         facturation: editingFacturationValue
       }, config);
 

@@ -6,7 +6,7 @@ import axios from 'axios';
 
 // VEUILLEZ REMPLACER CETTE ADRESSE SI VOTRE DOMAINE RENDER CHANGE !
 //const API_BASE_URL = "https://gestion-travaux-de-thermocool.onrender.com";
-const API_URL = process.env.REACT_APP_API_URL;
+//const API_URL = process.env.REACT_APP_API_URL;
 
 const couleurs = {
   Hygiène: '#34D399',
@@ -67,7 +67,7 @@ const HSSEObservationsPage = () => {
     }
 
     try {
-      const response = await axios.get(`${API_URL}/api/observations`, config);
+      const response = await axios.get('http://localhost:5000/api/observations', config);
       if (Array.isArray(response.data)) {
         setObservations(response.data);
       } else {
@@ -112,7 +112,7 @@ const HSSEObservationsPage = () => {
     if (!config) return;
 
     try {
-      const response = await axios.post(`${API_URL}/api/observations`, nouvelleObservation, config);
+      const response = await axios.post('http://localhost:5000/api/observations', nouvelleObservation, config);
       console.log('Observation ajoutée :', response.data);
       setObservations(prev => [response.data, ...prev]);
       setNouvelleObservation({
@@ -145,7 +145,7 @@ const HSSEObservationsPage = () => {
     if (!config) return;
 
     try {
-      const response = await axios.delete(`${API_URL}/api/observations/${observationToDeleteId}`, config);
+      const response = await axios.delete(`http://localhost:5000/api/observations/${observationToDeleteId}`, config);
       console.log('Suppression réussie :', response.data.message);
       setObservations(prev => prev.filter(obs => obs.id !== observationToDeleteId));
       alert('Observation supprimée avec succès !');
@@ -191,7 +191,7 @@ const HSSEObservationsPage = () => {
     if (!config) return;
 
     try {
-      const response = await axios.put(`${API_URL}/api/observations/${id}`, updatedFields, config);
+      const response = await axios.put(`http://localhost:5000/api/observations/${id}`, updatedFields, config);
       console.log('Mise à jour réussie :', response.data.message);
       setObservations(prev => prev.map(obs => obs.id === id ? currentObservationToEdit : obs));
       closeEditModal();
@@ -213,7 +213,7 @@ const HSSEObservationsPage = () => {
     if (!config) return;
 
     try {
-      const response = await axios.put(`${API_URL}/api/observations/${id}`, { statut: newStatut }, config);
+      const response = await axios.put(`http://localhost:5000/api/observations/${id}`, { statut: newStatut }, config);
       console.log('Statut mis à jour :', response.data.message);
       setObservations(prev => prev.map(obs =>
         obs.id === id ? { ...obs, statut: newStatut } : obs
